@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Dipankar's Badminton Chatbot</title>
+
+    <!-- Poppins Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Floating Button */
+        #tp-chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #e9cd84;
+            color: #fff;
+            font-size: 22px;
+            border: none;
+            cursor: pointer;
+            z-index: 999999;
+        }
+
+        /* Chat Box */
+        #tp-chatbox {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 340px;
+            height: 440px;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(15, 24, 65, 0.25);
+            display: none;
+            flex-direction: column;
+            z-index: 999999;
+            overflow: hidden;
+        }
+
+        /* Header */
+        #tp-chat-header {
+            background: #e9cd84;
+            color: #ffffff;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #tp-chat-header span {
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Messages */
+        #tp-chat-messages {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            background: #f7f8fc;
+        }
+
+        /* Message bubbles */
+        .msg {
+            margin-bottom: 10px;
+            max-width: 85%;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+
+        .msg.user {
+            margin-left: auto;
+            background: #e9cd84;
+            color: #ffffff;
+            padding: 10px 12px;
+            border-radius: 14px 14px 0 14px;
+        }
+
+        .msg.bot {
+            background: #ffffff;
+            color: #61698b;
+            padding: 10px 12px;
+            border-radius: 14px 14px 14px 0;
+            border: 1px solid #e2e5f1;
+        }
+
+        /* Input */
+        #tp-chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e2e5f1;
+            background: #ffffff;
+        }
+
+        #tp-chat-input input {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d0d4e6;
+            outline: none;
+            font-size: 13px;
+        }
+
+        #tp-chat-input button {
+            margin-left: 8px;
+            background: #e9cd84;
+            color: #ffffff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="tp-chat-btn">💬</button>
+
+    <div id="tp-chatbox">
+        <div id="tp-chat-header">
+            Dipankar's Badminton Academy (Assistant)
+            <span onclick="toggleChat()">✕</span>
+        </div>
+
+        <div id="tp-chat-messages"></div>
+
+        <div id="tp-chat-input">
+            <input id="tp-user-input" placeholder="Ask a question…" />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/chat";
+
+        const chatBtn = document.getElementById("tp-chat-btn");
+        const chatBox = document.getElementById("tp-chatbox");
+        const messages = document.getElementById("tp-chat-messages");
+        const input = document.getElementById("tp-user-input");
+
+        chatBtn.onclick = toggleChat;
+
+        function toggleChat() {
+            chatBox.style.display = chatBox.style.display === "flex" ? "none" : "flex";
+        }
+
+        input.addEventListener("keypress", e => {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        // Welcome message
+        addMessage("bot", "Hello! How can Dipankar's Badminton Academy assist you today?");
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage("user", text);
+            input.value = "";
+
+            const typing = addMessage("bot", "Typing…");
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: text })
+                });
+
+                const data = await res.json();
+                typing.remove();
+                addMessage("bot", data.answer || "Sorry, something went wrong.");
+            } catch {
+                typing.remove();
+                addMessage("bot", "Unable to connect. Please try again later.");
+            }
+        }
+
+        function addMessage(type, text) {
+            const div = document.createElement("div");
+            div.className = `msg ${type}`;
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+            return div;
+        }
+    </script>
+
+</body>
+
+</html>
