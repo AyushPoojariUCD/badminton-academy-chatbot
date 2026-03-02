@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <title>Dipankar's Badminton Chatbot</title>
 
-    <!-- Poppins Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
@@ -13,7 +12,6 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Floating Button */
         #tp-chat-btn {
             position: fixed;
             bottom: 20px;
@@ -27,15 +25,15 @@
             border: none;
             cursor: pointer;
             z-index: 999999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        /* Chat Box */
         #tp-chatbox {
             position: fixed;
             bottom: 90px;
             right: 20px;
             width: 340px;
-            height: 440px;
+            height: 460px;
             background: #ffffff;
             border-radius: 14px;
             box-shadow: 0 12px 30px rgba(15, 24, 65, 0.25);
@@ -45,7 +43,6 @@
             overflow: hidden;
         }
 
-        /* Header */
         #tp-chat-header {
             background: #e9cd84;
             color: #ffffff;
@@ -62,7 +59,6 @@
             font-size: 18px;
         }
 
-        /* Messages */
         #tp-chat-messages {
             flex: 1;
             padding: 14px;
@@ -70,12 +66,24 @@
             background: #f7f8fc;
         }
 
-        /* Message bubbles */
         .msg {
             margin-bottom: 10px;
             max-width: 85%;
             line-height: 1.5;
             font-size: 13px;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .msg.user {
@@ -89,12 +97,11 @@
         .msg.bot {
             background: #ffffff;
             color: #61698b;
-            padding: 10px 12px;
+            padding: 12px;
             border-radius: 14px 14px 14px 0;
             border: 1px solid #e2e5f1;
         }
 
-        /* Input */
         #tp-chat-input {
             display: flex;
             padding: 10px;
@@ -119,7 +126,42 @@
             padding: 10px 14px;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        .contact-btn {
+            display: block;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
             font-size: 13px;
+            font-weight: 500;
+        }
+
+        .call {
+            background: #e9cd84;
+        }
+
+        .whatsapp {
+            background: #25D366;
+        }
+
+        .booking {
+            background: #4a90e2;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .qr {
+            width: 140px;
+            display: block;
+            margin: 8px auto 0 auto;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -129,8 +171,9 @@
     <button id="tp-chat-btn">💬</button>
 
     <div id="tp-chatbox">
+
         <div id="tp-chat-header">
-            Dipankar's Badminton Academy (Assistant)
+            Dipankar's Badminton Academy
             <span onclick="toggleChat()">✕</span>
         </div>
 
@@ -140,10 +183,23 @@
             <input id="tp-user-input" placeholder="Ask a question…" />
             <button onclick="sendMessage()">Send</button>
         </div>
+
     </div>
 
     <script>
-        const API_URL = "http://127.0.0.1:8000/api/chat";
+
+        const API_URL = "http://127.0.0.1:8002/api/chat";
+
+        const PHONE = "917703818524";
+
+        const WHATSAPP_LINK =
+            "https://web.whatsapp.com/send?phone=917703818524&text=Welcome+to+Dipankar%27s+Badminton+Academy%21+More+than+an+academy%2C+we+are+a+true+school+of+badminton%2C+dedicated+to+nurturing+champions+through+structured+training+and+holistic+development.%0AHow+can+we+assist+you+today%3F";
+
+        const BOOKING_LINK = WHATSAPP_LINK;
+
+        const QR_IMAGE =
+            "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+            encodeURIComponent(WHATSAPP_LINK);
 
         const chatBtn = document.getElementById("tp-chat-btn");
         const chatBox = document.getElementById("tp-chatbox");
@@ -153,26 +209,45 @@
         chatBtn.onclick = toggleChat;
 
         function toggleChat() {
-            chatBox.style.display = chatBox.style.display === "flex" ? "none" : "flex";
+            chatBox.style.display =
+                chatBox.style.display === "flex" ? "none" : "flex";
         }
 
         input.addEventListener("keypress", e => {
             if (e.key === "Enter") sendMessage();
         });
 
-        // Welcome message
-        addMessage("bot", "Hello! How can Dipankar's Badminton Academy assist you today?");
+        addMessage("bot", "Welcome to Dipankar's Badminton Academy 🏸 How can we assist you today?");
 
         async function sendMessage() {
+
             const text = input.value.trim();
+
             if (!text) return;
 
             addMessage("user", text);
+
             input.value = "";
 
-            const typing = addMessage("bot", "Typing…");
+            const lower = text.toLowerCase();
+
+            if (
+                lower.includes("contact") ||
+                lower.includes("phone") ||
+                lower.includes("number") ||
+                lower.includes("booking") ||
+                lower.includes("book") ||
+                lower.includes("call") ||
+                lower.includes("whatsapp")
+            ) {
+                showContactOptions();
+                return;
+            }
+
+            const typing = addMessage("bot", "Typing...");
 
             try {
+
                 const res = await fetch(API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -180,24 +255,68 @@
                 });
 
                 const data = await res.json();
+
                 typing.remove();
+
                 addMessage("bot", data.answer || "Sorry, something went wrong.");
-            } catch {
+
+            }
+            catch {
                 typing.remove();
-                addMessage("bot", "Unable to connect. Please try again later.");
+
+                addMessage("bot", "Server unavailable.");
+
             }
         }
 
-        function addMessage(type, text) {
+        function showContactOptions() {
+
             const div = document.createElement("div");
-            div.className = `msg ${type}`;
-            div.textContent = text;
+
+            div.className = "msg bot";
+
+            div.innerHTML = `
+        <b>Contact Dipankar's Badminton Academy</b><br><br>
+
+        <a class="contact-btn call" href="tel:+${PHONE}">
+            📞 Call Now
+        </a>
+
+        <a class="contact-btn whatsapp" href="${WHATSAPP_LINK}" target="_blank">
+            💬 WhatsApp Chat
+        </a>
+
+        <a class="contact-btn booking" href="${BOOKING_LINK}" target="_blank">
+            📅 Book via WhatsApp
+        </a>
+
+        <div class="qr-container">
+            Scan QR to Chat:
+            <img src="${QR_IMAGE}" class="qr">
+        </div>
+    `;
+
             messages.appendChild(div);
+
             messages.scrollTop = messages.scrollHeight;
+
+        }
+
+        function addMessage(type, text) {
+
+            const div = document.createElement("div");
+
+            div.className = `msg ${type}`;
+
+            div.textContent = text;
+
+            messages.appendChild(div);
+
+            messages.scrollTop = messages.scrollHeight;
+
             return div;
+
         }
     </script>
-
 </body>
-
 </html>
