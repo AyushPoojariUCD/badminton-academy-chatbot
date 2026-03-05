@@ -253,15 +253,41 @@ Do NOT use markdown symbols like ** or *.
 """
 
 def chat_with_knowledge(question: str) -> str:
+
     if is_disallowed_question(question):
         return guardrail_response()
 
-    prompt = f"""
-            {COMPANY_CONTEXT}
+    q = question.lower()
 
-            User Question:
-            {question}
-        """
+    # Instagram intent detection
+    instagram_keywords = [
+        "instagram",
+        "insta",
+        "reel",
+        "reels",
+        "video",
+        "training video",
+        "training session",
+        "practice video",
+        "academy video",
+        "match video"
+    ]
+
+    if any(word in q for word in instagram_keywords):
+        return """
+<div class="insta-feed">
+
+<div class="elfsight-app-4ed27d31-35c2-4a26-b4a3-e676cc6ec3fa" data-elfsight-app-lazy></div>
+
+</div>
+"""
+
+    prompt = f"""
+{COMPANY_CONTEXT}
+
+User Question:
+{question}
+"""
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -273,3 +299,4 @@ def chat_with_knowledge(question: str) -> str:
     )
 
     return response.choices[0].message.content
+
