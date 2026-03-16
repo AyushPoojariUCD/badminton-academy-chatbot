@@ -353,10 +353,7 @@ Never replace links with words like "undefined".
 Act as the official assistant of Dipankar's Badminton Academy.
 """
 
-
 def chat_with_knowledge(question: str) -> str:
-
-<<<<<<< HEAD
     # Guardrail check
     if is_disallowed_question(question):
         return guardrail_response()
@@ -371,28 +368,28 @@ def chat_with_knowledge(question: str) -> str:
                 {"role": "user", "content": question}
             ]
         )
-=======
-    if is_disallowed_question(question):
-        return guardrail_response()
 
-    q = question.lower()
+        if is_disallowed_question(question):
+            return guardrail_response()
 
-    # Instagram intent detection
-    instagram_keywords = [
-        "instagram",
-        "insta",
-        "reel",
-        "reels",
-        "video",
-        "training video",
-        "training session",
-        "practice video",
-        "academy video",
-        "match video"
-    ]
+        q = question.lower()
 
-    if any(word in q for word in instagram_keywords):
-        return """
+        # Instagram intent detection
+        instagram_keywords = [
+            "instagram",
+            "insta",
+            "reel",
+            "reels",
+            "video",
+            "training video",
+            "training session",
+            "practice video",
+            "academy video",
+            "match video"
+        ]
+
+        if any(word in q for word in instagram_keywords):
+            return """
 <div class="insta-feed">
 
 <div class="elfsight-app-4ed27d31-35c2-4a26-b4a3-e676cc6ec3fa" data-elfsight-app-lazy></div>
@@ -400,17 +397,15 @@ def chat_with_knowledge(question: str) -> str:
 </div>
 """
 
-    prompt = f"""
+        prompt = f"""
 {COMPANY_CONTEXT}
 
 User Question:
 {question}
 """
->>>>>>> 1fa5c27dcfa19fb120e91b82bd70e5ce5c299331
 
         answer = response.choices[0].message.content.strip()
 
-<<<<<<< HEAD
         # Prevent "undefined" appearing in answers
         if "undefined" in answer.lower():
             answer = answer.replace(
@@ -423,7 +418,5 @@ User Question:
     except Exception as e:
         print("OpenAI Error:", e)
         return "Sorry, the assistant is temporarily unavailable. Please try again later."
-=======
-    return response.choices[0].message.content
 
->>>>>>> 1fa5c27dcfa19fb120e91b82bd70e5ce5c299331
+    return response.choices[0].message.content
